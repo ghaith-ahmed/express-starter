@@ -3,21 +3,31 @@ const app = express();
 require("dotenv").config();
 const cookieParser = require("cookie-parser");
 const connectDB = require("./db/connectDB.js");
-const bodyParser = require("body-parser");
-const PORT = process.env.PORT || 5000;
+const usersRoute = require("./routes/usersRoute.js");
+const errorHandler = require("./middleware/errorHandler.js");
+const PORT = process.env.PORT || 5200;
 const cors = require("cors");
 const path = require("path");
+const passport = require("passport");
 
 app.use(
   cors({
-    origin: ["http://localhost:5000", "http://localhost:5173"],
+    origin: [`http://localhost:${PORT}`, "http://localhost:5173"],
     credentials: true,
   })
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(passport.initialize());
+require("./utils/passportJWT.js");
+require("./utils/passportGoogle.js");
 connectDB();
+app.use("/api/users", usersRoute);
+app.get("/api/", (req, res) =>
+  res.send(`<a href='/api/users/google'>Authenticate with Google</a>`)
+);
+app.use(errorHandler);
 
 const __dirname1 = path.resolve();
 
