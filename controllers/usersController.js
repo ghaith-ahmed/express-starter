@@ -1,18 +1,10 @@
 const User = require("../models/userModel");
 const { hashPassword, comparePassword } = require("../utils/helpers");
-const Joi = require("joi");
 const generateTokenAndSetCookie = require("../utils/generateTokenAndSetCookie");
 
-const registerSchema = Joi.object({
-  name: Joi.string().required().max(12),
-  email: Joi.string().required().email(),
-  password: Joi.string().required().min(5),
-});
-
 module.exports.register = async (req, res) => {
-  const { error, value } = registerSchema.validate(req.body);
-  if (error) throw error;
-  const { name, email, password } = value;
+  const { name, email, password } = req.body;
+  console.log(req.value);
   const userExists = await User.findOne({ email });
   if (userExists && userExists.googleId) {
     throw new Error("This email is already registered with Google !");
@@ -33,15 +25,8 @@ module.exports.register = async (req, res) => {
   });
 };
 
-const loginSchema = Joi.object({
-  email: Joi.string().required().email(),
-  password: Joi.string().required(),
-});
-
 module.exports.login = async (req, res) => {
-  const { error, value } = loginSchema.validate(req.body);
-  if (error) throw error;
-  const { email, password } = value;
+  const { email, password } = req.body;
   const user = await User.findOne({ email, googleId: null });
   if (!user) throw new Error("User not found !");
   if (!comparePassword(password, user.password))
@@ -60,16 +45,7 @@ module.exports.logout = (req, res) => {
   res.status(200).json({ message: "User logged out successfully" });
 };
 
-const updateSchema = Joi.object({
-  name: Joi.string().max(12),
-  email: Joi.string().email(),
-  oldPassword: Joi.string().min(5),
-  newPassword: Joi.string().min(5),
-});
-
 module.exports.update = async (req, res) => {
-  const { error, value } = updateSchema.validate(req.body);
-  if (error) throw error;
   const { name, email, oldPassword, newPassword } = req.body;
   const userToModify = await User.findById(req.user._id);
 

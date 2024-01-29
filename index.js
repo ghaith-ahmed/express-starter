@@ -9,7 +9,14 @@ const PORT = process.env.PORT || 5200;
 const cors = require("cors");
 const path = require("path");
 const passport = require("passport");
+const helmet = require("helmet");
+const cache = require("./middleware/cache.js");
 
+app.use(
+  helmet({
+    crossOriginOpenerPolicy: false,
+  })
+);
 app.use(
   cors({
     origin: [`http://localhost:${PORT}`, "http://localhost:5173"],
@@ -24,10 +31,8 @@ require("./utils/passportJWT.js");
 require("./utils/passportGoogle.js");
 connectDB();
 app.use("/api/users", usersRoute);
-app.get("/api/", (req, res) =>
-  res.send(`<a href='/api/users/google'>Authenticate with Google</a>`)
-);
 app.use(errorHandler);
+app.use(cache);
 
 const __dirname1 = path.resolve();
 
